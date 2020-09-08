@@ -1,4 +1,4 @@
-from machine import Pin, I2C, PWM
+from machine import Pin, I2C, PWM, Timer
 from time import sleep_ms, ticks_ms, sleep
 from esp8266_i2c_lcd import I2cLcd
 import ds18x20
@@ -11,7 +11,7 @@ TEMP_LOW = 0
 TEMP_HIGH = 50
 SPEED_LOW = 0
 SPEED_HIGH = 100
-
+temp = 0
 
 fan1 = PWM(Pin(5))
 fan2 = PWM(Pin(18))
@@ -21,9 +21,11 @@ fan2.freq(25000)
 fan3.freq(25000)
 fan_matrix = [fan1, fan2, fan3]
 
+
 def fan_operation(fan_list, speed_value):
     for fan in fan_list:
         fan.duty(speed_value)
+
 
 fan_operation(fan_matrix, SPEED_VALUE)
 
@@ -36,6 +38,18 @@ ds_dev = ds_sensor.scan()[0]
 lcd = I2cLcd(i2c, DEFAULT_I2C_ADDR, 2, 16)
 
 lcd.putstr("Temp control\nStart online!")
+
+
+def temp_detect(timer):
+    print('See timer>>:', timer)
+    global temp
+    ds_sensor.convert_temp()
+    sleep_ms(350)
+    temp = ds_sensor.read_temp(ds_dev)
+
+
+temp_timer = Timer(1)
+temp_timer.init(period=1000, mode=Timer.PERIODIC, callback=temp_detect)
 
 
 def z_fill(string, position='left', length=4, tag='0'):
@@ -70,14 +84,20 @@ def speed_change(temp):
     fan_operation(fan_matrix, int(1023 * speed_diff))
 
 
+def temp_detect(timer):
+    print('See timer>>:', timer)
+    global temp
+    ds_sensor.convert_temp()
+    sleep_ms(350)
+    temp = ds_sensor.read_temp(ds_dev)
+
+
 def get_pwm_temp():
     duty_value = fan1.duty()
-    ds_sensor.convert_temp()
-    sleep_ms(150)
-    temp = ds_sensor.read_temp(ds_dev)
-    speed_change(temp)
     string_buffer = 'PWM:' + z_fill(duty_value) + ' T:' + str(temp)
+    speed_change(temp)
     return string_buffer[:16]
+
 
 while True:
     time = get_time()
