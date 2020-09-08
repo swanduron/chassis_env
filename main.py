@@ -84,14 +84,6 @@ def speed_change(temp):
     fan_operation(fan_matrix, int(1023 * speed_diff))
 
 
-def temp_detect(timer):
-    print('See timer>>:', timer)
-    global temp
-    ds_sensor.convert_temp()
-    sleep_ms(350)
-    temp = ds_sensor.read_temp(ds_dev)
-
-
 def get_pwm_temp():
     duty_value = fan1.duty()
     string_buffer = 'PWM:' + z_fill(duty_value) + ' T:' + str(temp)
