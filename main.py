@@ -48,8 +48,10 @@ def temp_detect(timer):
     sleep_ms(350)
     temp = ds_sensor.read_temp(ds_dev)
 
+
 temp_timer = Timer(1)
 temp_timer.init(period=1000, mode=Timer.PERIODIC, callback=temp_detect)
+
 
 def z_fill(string, position='left', length=4, tag='0'):
 
@@ -72,8 +74,8 @@ def get_time():
     year, month, day = real_clock.Date()
     hour, minute, second = real_clock.Time()
     date = [z_fill(i, length=2) for i in [year, month, day]]
-    time = [z_fill(i, length=2) for i in [hour, minute, second]]
-    string_buffer = '-'.join(date) + ' ' + ':'.join(time)
+    times = [z_fill(i, length=2) for i in [hour, minute, second]]
+    string_buffer = '-'.join(date) + ' ' + ':'.join(times)
     return string_buffer[:16]
 
 
