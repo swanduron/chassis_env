@@ -85,19 +85,6 @@ def z_fill(string, position='left', length=4, tag='0'):
             return string
 
 
-# def get_time():
-#     year, month, day = real_clock.Date()
-#     hour, minute, second = real_clock.Time()
-#     date = [z_fill(i, length=2) for i in [year, month, day]]
-#     times = [z_fill(i, length=2) for i in [hour, minute, second]]
-#     string_buffer = '-'.join(date) + ' ' + ':'.join(times)
-#     return string_buffer[:16]
-#
-# def get_pwm_temp():
-#     duty_value = fan1.duty()
-#     string_buffer = 'PWM:' + z_fill(duty_value) + ' T:' + str(temp)
-#     return string_buffer[:16]
-
 def put_info():
     year, month, day = real_clock.Date()
     hour, minute, second = real_clock.Time()
@@ -115,9 +102,7 @@ def put_info():
 # Enable IRQ for system fresh caused by DS3231
 Pin(25, Pin.IN).irq(trigger=Pin.IRQ_FALLING, handler=put_info)
 
-# while True:
-#     time = get_time()
-#     pwm = get_pwm_temp()
-#     lcd.move_to(0, 0)
-#     lcd.putstr(time + pwm)
-#     sleep(1)
+# need to be removed when DS trigger is existed.
+while True:
+    put_info()
+    sleep(1)
