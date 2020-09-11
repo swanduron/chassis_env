@@ -6,15 +6,16 @@ import ds3231
 import onewire
 
 DEFAULT_I2C_ADDR = 0x27
-SPEED_VALUE = 249
 TEMP_LOW = 20
 TEMP_HIGH = 45
 SPEED_LOW = 20
 SPEED_HIGH = 100
-temp = 0
+temp = 15
 
 led = Pin(2, Pin.OUT)
 led.value(1)
+
+CONFIG_BTN = Pin(34, Pin.IN)
 
 fan1 = PWM(Pin(5))
 fan2 = PWM(Pin(18))
@@ -24,11 +25,10 @@ fan2.freq(25000)
 fan3.freq(25000)
 fan_matrix = [fan1, fan2, fan3]
 
+
 def fan_operation(fan_list, speed_value):
     for fan in fan_list:
         fan.duty(speed_value)
-
-fan_operation(fan_matrix, SPEED_VALUE)
 
 
 i2c = I2C(scl=Pin(22), sda=Pin(21), freq=400000)
@@ -53,6 +53,21 @@ temp_timer = Timer(1)
 temp_timer.init(period=1000, mode=Timer.PERIODIC, callback=temp_detect)
 
 
+def speed_change(timer):
+
+    percent = (temp - TEMP_LOW) / (TEMP_HIGH - TEMP_LOW)
+    if percent < 0:
+        percent = 0
+    elif percent > 1:
+        percent = 1
+    speed_diff = ((SPEED_HIGH - SPEED_LOW) * percent + SPEED_LOW) / 100
+    fan_operation(fan_matrix, int(1023 * speed_diff))
+
+
+temp_timer = Timer(2)
+temp_timer.init(period=500, mode=Timer.PERIODIC, callback=speed_change)
+
+
 def z_fill(string, position='left', length=4, tag='0'):
 
     string = str(string)
@@ -70,33 +85,39 @@ def z_fill(string, position='left', length=4, tag='0'):
             return string
 
 
-def get_time():
+# def get_time():
+#     year, month, day = real_clock.Date()
+#     hour, minute, second = real_clock.Time()
+#     date = [z_fill(i, length=2) for i in [year, month, day]]
+#     times = [z_fill(i, length=2) for i in [hour, minute, second]]
+#     string_buffer = '-'.join(date) + ' ' + ':'.join(times)
+#     return string_buffer[:16]
+#
+# def get_pwm_temp():
+#     duty_value = fan1.duty()
+#     string_buffer = 'PWM:' + z_fill(duty_value) + ' T:' + str(temp)
+#     return string_buffer[:16]
+
+def put_info():
     year, month, day = real_clock.Date()
     hour, minute, second = real_clock.Time()
     date = [z_fill(i, length=2) for i in [year, month, day]]
     times = [z_fill(i, length=2) for i in [hour, minute, second]]
     string_buffer = '-'.join(date) + ' ' + ':'.join(times)
-    return string_buffer[:16]
-
-
-def speed_change(temp):
-
-    percent = (temp - TEMP_LOW) / (TEMP_HIGH - TEMP_LOW)
-    percent = percent if percent > 0 else 0
-    speed_diff = ((SPEED_HIGH - SPEED_LOW) * percent + SPEED_LOW) / 100
-    fan_operation(fan_matrix, int(1023 * speed_diff))
-
-
-def get_pwm_temp():
+    time = string_buffer[:16]
     duty_value = fan1.duty()
     string_buffer = 'PWM:' + z_fill(duty_value) + ' T:' + str(temp)
-    speed_change(temp)
-    return string_buffer[:16]
-
-
-while True:
-    time = get_time()
-    pwm = get_pwm_temp()
+    pwm = string_buffer[:16]
     lcd.move_to(0, 0)
     lcd.putstr(time + pwm)
-    sleep(1)
+
+
+# Enable IRQ for system fresh caused by DS3231
+Pin(25, Pin.IN).irq(trigger=Pin.IRQ_FALLING, handler=put_info)
+
+# while True:
+#     time = get_time()
+#     pwm = get_pwm_temp()
+#     lcd.move_to(0, 0)
+#     lcd.putstr(time + pwm)
+#     sleep(1)
