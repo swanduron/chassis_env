@@ -17,6 +17,20 @@ led.value(1)
 
 CONFIG_BTN = Pin(34, Pin.IN)
 
+i2c = I2C(scl=Pin(22), sda=Pin(21), freq=400000)
+real_clock = ds3231.DS3231(i2c)
+ds_sensor = ds18x20.DS18X20(onewire.OneWire(Pin(4)))
+ds_dev = ds_sensor.scan()[0]
+
+lcd = I2cLcd(i2c, DEFAULT_I2C_ADDR, 2, 16)
+
+if CONFIG_BTN.value()==0:
+    lcd.putstr('Config mode')
+    sleep(0.5)
+    import web_server
+else:
+    lcd.putstr("Temp control\nStart online!")
+
 fan1 = PWM(Pin(5))
 fan2 = PWM(Pin(18))
 fan3 = PWM(Pin(19))
@@ -29,16 +43,6 @@ fan_matrix = [fan1, fan2, fan3]
 def fan_operation(fan_list, speed_value):
     for fan in fan_list:
         fan.duty(speed_value)
-
-
-i2c = I2C(scl=Pin(22), sda=Pin(21), freq=400000)
-real_clock = ds3231.DS3231(i2c)
-ds_sensor = ds18x20.DS18X20(onewire.OneWire(Pin(4)))
-ds_dev = ds_sensor.scan()[0]
-
-lcd = I2cLcd(i2c, DEFAULT_I2C_ADDR, 2, 16)
-
-lcd.putstr("Temp control\nStart online!")
 
 
 def temp_detect(timer):

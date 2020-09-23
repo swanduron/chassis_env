@@ -8,7 +8,8 @@ data = {
     'temp_low': 0,
     'temp_high': 100,
     'speed_low': 20,
-    'speed_high': 95
+    'speed_high': 95,
+    'ntp':'192.168.1.1'
 }
 
 with open(FILE_URL, mode='w') as file_target:
