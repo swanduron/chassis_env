@@ -47,7 +47,6 @@ def fan_operation(fan_list, speed_value):
 
 def temp_detect(timer):
     global temp
-    led.value(0 if led.value() else 1)
     ds_sensor.convert_temp()
     sleep_ms(350)
     temp = ds_sensor.read_temp(ds_dev)
@@ -90,6 +89,7 @@ def z_fill(string, position='left', length=4, tag='0'):
 
 
 def put_info():
+    led.value(0 if led.value() else 1)
     year, month, day = real_clock.Date()
     hour, minute, second = real_clock.Time()
     date = [z_fill(i, length=2) for i in [year, month, day]]
@@ -104,9 +104,13 @@ def put_info():
 
 
 # Enable IRQ for system fresh caused by DS3231
+# DS3231 pulse is not working right now.
 Pin(25, Pin.IN).irq(trigger=Pin.IRQ_FALLING, handler=put_info)
 
 # need to be removed when DS trigger is existed.
-while True:
-    put_info()
-    sleep(1)
+# while True:
+#     put_info()
+#     sleep(1)
+
+main_timer = Timer(3)
+main_timer.init(period=1000, mode=Timer.PERIODIC, callback=put_info)
