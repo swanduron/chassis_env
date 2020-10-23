@@ -88,7 +88,7 @@ def z_fill(string, position='left', length=4, tag='0'):
             return string
 
 
-def put_info():
+def put_info(timer=0):
     led.value(0 if led.value() else 1)
     year, month, day = real_clock.Date()
     hour, minute, second = real_clock.Time()
